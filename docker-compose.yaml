@@ -1,0 +1,7 @@
+version: '3.8'
+volumes:
+  db-data:
+  raw-data:
+
+networks:
+  airquality:
