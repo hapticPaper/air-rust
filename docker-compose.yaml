@@ -1,7 +1,77 @@
 version: '3.8'
+services:
+  postgres:
+    image: postgres
+    volumes:
+      - db-data:/var/lib/postgresql/data
+    environment:
+      POSTGRES_USER: airquality
+      POSTGRES_PASSWORD: airquality
+      POSTGRES_DB: airquality
+    networks:
+      - airquality
+
+  redis:
+    image: redis
+    volumes:
+      - redis:/data
+    networks:
+      - airquality
+
+  api-server:
+    build:
+      context: ./api
+      dockerfile: Dockerfile
+    environment:
+      FLASK_ENV: development
+      DATABASE_URI: postgresql://airquality:airquality@postgres/airquality
+      REDIS_URL: redis://redis:6379/0
+    ports:
+      - "5000:5000"
+    expose: 
+      - 5000
+    volumes:
+      - ./api:/app
+      - raw-data:/app/raw_data
+      - cached-images:/app/cached_images
+    networks:
+      - airquality
+
+  react-frontend:
+    build: 
+          context: ./frontend
+          dockerfile: Dockerfile
+    ports:
+      - "3000:3000"
+    expose: 
+      - 3000
+    volumes:
+      - ./react:/app
+    networks:
+      - airquality
+
+  nginx:
+    image: nginx
+    ports:
+      - "80:80"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf
+    networks:
+      - airquality
+
+  dummy-client:
+    build:
+      context: ./dummy-client
+      dockerfile: Dockerfile
+    networks:
+      - airquality
+
 volumes:
   db-data:
   raw-data:
+  cached-images:
+  redis:
+  frontend:
 
 networks:
   airquality:
